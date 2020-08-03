@@ -165,17 +165,22 @@ export default {
       },
       {
         symbol: "BTC",
-        contract: "0x4EfDF3235e9e6eD26221C18c4D7D2c3931544274",
+        contract: "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8",
         decimals: 18
       },
       {
         symbol: "ETH",
-        contract: "0xEbF6be46Ba6CB02d37856bb2393a2eDf1F34bC5c",
+        contract: "0xd66c6B4F0be8CE5b39D52E0Fd1344c389929B378",
         decimals: 18
       },
       {
         symbol: "XRP",
-        contract: "0x2176Aa88a9c10078897867b9745bD0b0e637C885",
+        contract: "0xa83575490D7df4E2F47b7D38ef351a2722cA45b9",
+        decimals: 18
+      },
+      {
+        symbol: "BUSD",
+        contract: "0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee",
         decimals: 18
       }
     ],
@@ -365,8 +370,7 @@ export default {
           this.selectToken.contract, // BEP2E contract address
           this.recipientHex, // decode bech32 address to hex string
           amountBN.toString(), // BEP2E token amount
-          String(Date.parse(new Date()) / 1000 + 60 * 60), // expireTime	uint256	Timestamp, counted by second
-          relayFeeBN.toString() // The relayFee should be no less than miniRelayFee. The initial miniRelayFee is 1e16. It can be changed by on-chain governance.
+          String(Date.parse(new Date()) / 1000 + 60 * 60) // expireTime	uint256	Timestamp, counted by second
         )
         .encodeABI();
       const transaction = {
