@@ -78,14 +78,11 @@
             </v-tab-item>
             <v-tab-item>
               <v-card flat>
-                <v-card-title class="subtitle-2 grey--text">
-                  Approved
-                </v-card-title>
-                <v-card-subtitle class="primary--text display-1 font-weight-medium">
-                  {{allowance?`${allowance} ${selectToken.symbol}`:""}}
-                </v-card-subtitle>
+                <v-card-title class="subtitle-2 grey--text">Approved</v-card-title>
+                <v-card-subtitle
+                  class="primary--text display-1 font-weight-medium"
+                >{{allowance?`${allowance} ${selectToken.symbol}`:""}}</v-card-subtitle>
                 <v-card-text>
-
                   <v-text-field
                     v-model="amount"
                     class="subtitle-1 font-weight-medium"
@@ -161,28 +158,28 @@ export default {
       {
         symbol: "BNB",
         contract: "0x0000000000000000000000000000000000000000",
-        decimals: 18
+        decimals: 18,
       },
       {
         symbol: "BTC",
         contract: "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8",
-        decimals: 18
+        decimals: 18,
       },
       {
         symbol: "ETH",
         contract: "0xd66c6B4F0be8CE5b39D52E0Fd1344c389929B378",
-        decimals: 18
+        decimals: 18,
       },
       {
         symbol: "XRP",
         contract: "0xa83575490D7df4E2F47b7D38ef351a2722cA45b9",
-        decimals: 18
+        decimals: 18,
       },
       {
         symbol: "BUSD",
         contract: "0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee",
-        decimals: 18
-      }
+        decimals: 18,
+      },
     ],
     selectToken: null,
     // Balance
@@ -200,7 +197,7 @@ export default {
     relayFee: "10000000000000000", /// unit(BNB，18)
     // Gas fee
     gasLimit: "200000",
-    gasPrice: "20000000000"
+    gasPrice: "20000000000",
   }),
   watch: {
     recipient(newRecipient, oldRecipient) {
@@ -235,7 +232,7 @@ export default {
     selectTab(newTab) {
       this.amount = "";
       this.recipient = "";
-    }
+    },
   },
   created() {
     this.selectToken = this.tokens[0];
@@ -259,17 +256,23 @@ export default {
     },
     getTokenBalanceMessage(approve = false) {
       if (this.isBNBToken()) {
-        return this.balance?`↳Balance ${this.balance} ${this.selectToken.symbol}`:""; 
-      }else if(approve){
-        return this.tokenBalance?`↳Balance ${this.tokenBalance} ${this.selectToken.symbol}`:"";
-      }else{
-        return this.tokenBalance?`↳Available ${this.allowance} ${this.selectToken.symbol}, Total ${this.tokenBalance} ${this.selectToken.symbol}`:"";
+        return this.balance
+          ? `↳Balance ${this.balance} ${this.selectToken.symbol}`
+          : "";
+      } else if (approve) {
+        return this.tokenBalance
+          ? `↳Balance ${this.tokenBalance} ${this.selectToken.symbol}`
+          : "";
+      } else {
+        return this.tokenBalance
+          ? `↳Available ${this.allowance} ${this.selectToken.symbol}, Total ${this.tokenBalance} ${this.selectToken.symbol}`
+          : "";
       }
     },
     login() {
       this.injectedWeb3 = window.web3;
       // Log in
-      this.injectedWeb3.currentProvider.enable().then(accounts => {
+      this.injectedWeb3.currentProvider.enable().then((accounts) => {
         this.address = accounts[0];
         this.web3 = new Web3(this.injectedWeb3.currentProvider);
       });
@@ -279,11 +282,14 @@ export default {
       const relayFee = new BN(this.relayFee);
       const gasPrice = new BN(this.gasPrice);
       const gasLimit = new BN(this.gasLimit);
-      this.feeMessage = `${formatAmount(gasPrice.mul(gasLimit).add(relayFee).toString(),this.tokens[0].decimals)} ${this.tokens[0].symbol}`;
+      this.feeMessage = `${formatAmount(
+        gasPrice.mul(gasLimit).add(relayFee).toString(),
+        this.tokens[0].decimals
+      )} ${this.tokens[0].symbol}`;
       // Check if Web3 is successfully injected
       if (!this.web3) return;
       // Balance of BNB
-      this.web3.eth.getBalance(this.address).then(result => {
+      this.web3.eth.getBalance(this.address).then((result) => {
         this.balance = formatAmount(result, this.tokens[0].decimals);
       });
       if (this.isBNBToken()) return;
@@ -295,7 +301,7 @@ export default {
       const balanceTransaction = {
         from: this.address,
         to: this.selectToken.contract,
-        data: contract.methods.balanceOf(this.address).encodeABI()
+        data: contract.methods.balanceOf(this.address).encodeABI(),
       };
       this.web3.eth.call(balanceTransaction, (error, data) => {
         if (!error) {
@@ -311,7 +317,7 @@ export default {
         to: this.selectToken.contract,
         data: contract.methods
           .allowance(this.address, this.tokenHubContractAddress)
-          .encodeABI()
+          .encodeABI(),
       };
       this.web3.eth.call(allowanceTransaction, (error, data) => {
         if (!error) {
@@ -327,7 +333,7 @@ export default {
         parseAmount(this.amount, this.selectToken.decimals)
       );
       const relayFeeBN = new BN(this.relayFee);
-      
+
       // Check if fee is sufficient
       if (!this.isBNBToken()) {
         const allowanceBalance = new BN(
@@ -339,7 +345,8 @@ export default {
         if (allowanceBalance.cmp(amountBN) == -1) {
           this.showSnackbar = true;
           this.snackbarColor = "error";
-          this.snackbarText = this.selectToken.symbol + " allowance insufficient";
+          this.snackbarText =
+            this.selectToken.symbol + " allowance insufficient";
           return;
         }
       }
@@ -379,16 +386,18 @@ export default {
         value: value.toString(),
         gas: gasLimit.toString(),
         gasPrice: gasPrice.toString(),
-        data: encodeABI
+        data: encodeABI,
       };
+      console.log(transaction);
       this.web3.eth.sendTransaction(transaction, (error, hash) => {
-        if (error) {
+        console.log(error, hash);
+        if (error || !(hash && typeof hash == "string")) {
           this.showSnackbar = true;
           this.snackbarColor = "error";
-          this.snackbarText = error.message;
+          this.snackbarText = error
+            ? error.message
+            : "Failed to send transaction";
         } else {
-          console.log(hash);
-
           this.showSnackbar = true;
           this.snackbarColor = "success";
           this.snackbarText = "Successfully";
@@ -441,10 +450,10 @@ export default {
         .encodeABI();
       const transaction = {
         from: this.address,
-        to:this.selectToken.contract,
+        to: this.selectToken.contract,
         gas: gasLimit.toString(),
         gasPrice: gasPrice.toString(),
-        data: encodeABI
+        data: encodeABI,
       };
 
       this.web3.eth.sendTransaction(transaction, (error, hash) => {
@@ -460,7 +469,7 @@ export default {
           this.snackbarText = "Successfully";
         }
       });
-    }
-  }
+    },
+  },
 };
 </script>
