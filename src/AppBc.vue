@@ -163,7 +163,9 @@ export default {
         this.selectToken
       )
         .then((a) => {
-          console.log(a);
+          this.showSnackbar = true;
+          this.snackbarColor = "success";
+          this.snackbarText = "success";
         })
         .catch((error) => {
           this.showSnackbar = true;

@@ -55,7 +55,7 @@
                     label="Recipient"
                     :hint="recipientHint"
                     persistent-hint
-                    placeholder="tbnb163tgq6gv49km8mlc96az8xagha5q48e3yp3suj"
+                    placeholder="bnb163tgq6gv49km8mlc96az8xagha5q48e325c5ur"
                     filled
                   ></v-text-field>
                   <v-input
