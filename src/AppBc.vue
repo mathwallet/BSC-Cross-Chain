@@ -71,6 +71,8 @@
 <script>
 import BN from "bn.js";
 import { parseAmount, formatAmount } from "./utils/Format";
+import Web3 from "web3";
+
 export default {
   name: "Bc",
   data: () => ({
@@ -89,7 +91,7 @@ export default {
     ],
     selectToken: null,
     // Balance
-    balance: "", // BNB
+    balance: "0", // BNB
     // Recipient
     recipient: "",
     // Transfer Amount
@@ -108,6 +110,12 @@ export default {
         this.login();
       }
     }, 500);
+
+    setInterval(() => {
+      if (this.address) {
+        this.getBalance();
+      }
+    }, 5000);
   },
   methods: {
     login() {
@@ -153,15 +161,22 @@ export default {
       if (balanceBN.cmp(amountBN) == -1) {
         this.showSnackbar = true;
         this.snackbarColor = "error";
-        this.snackbarText = this.tokens[0].symbol + " balance insufficient";
+        this.snackbarText = this.selectToken.symbol + " balance insufficient";
         return;
       }
-      this.sendTransactionAsync(
-        this.address,
-        this.recipient,
-        this.amount,
-        this.selectToken
-      )
+      var to;
+      try {
+        to = Web3.utils.toChecksumAddress(this.recipient.toLowerCase());
+      } catch (error) {
+        to = null;
+      }
+      if (!to) {
+        this.showSnackbar = true;
+        this.snackbarColor = "error";
+        this.snackbarText = "Invalid address";
+        return;
+      }
+      this.sendTransactionAsync(this.address, to, this.amount, this.selectToken)
         .then((a) => {
           this.showSnackbar = true;
           this.snackbarColor = "success";
