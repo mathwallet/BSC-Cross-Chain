@@ -36,7 +36,7 @@
             class="subtitle-1 font-weight-medium"
             label="Amount"
             :suffix="selectToken.symbol"
-            :hint="`${balance} BNB`"
+            :hint="`${tokenBalance} ${selectToken.symbol}`"
             persistent-hint
             placeholder="0.0"
             filled
@@ -45,9 +45,19 @@
             v-model="recipient"
             class="subtitle-1 font-weight-medium"
             label="Recipient"
-            placeholder="0x55da3246865921072b14f2bca5cf55f4ae017cde"
+            placeholder="0x0000000000000000..."
+            append-icon="mdi-chevron-down"
+            @click:append="walletPicker"
             filled
           ></v-text-field>
+
+          <v-input
+            class="primary--text body-2"
+            :hint="`${getFeeText()} ${tokens[0].symbol}`"
+            persistent-hint
+            disabled
+            dense
+          >Fee</v-input>
         </v-card-text>
         <v-card-actions>
           <v-btn
@@ -72,6 +82,7 @@
 import BN from "bn.js";
 import { parseAmount, formatAmount } from "./utils/Format";
 import Web3 from "web3";
+import mathwallet from "math-js-sdk";
 
 export default {
   name: "Bc",
@@ -88,10 +99,19 @@ export default {
         symbol: "BNB",
         decimals: 8,
       },
+      {
+        symbol: "BTCB-1DE",
+        decimals: 8,
+      },
+      {
+        symbol: "BUSD-BD1",
+        decimals: 8,
+      },
     ],
     selectToken: null,
     // Balance
-    balance: "0", // BNB
+    bnbBalance: "0", // BNB
+    tokenBalance: "0", // Select Token
     // Recipient
     recipient: "",
     // Transfer Amount
@@ -99,9 +119,25 @@ export default {
     // Http Provider
     httpProvider: null,
     rpcUrl: "https://dex.binance.org",
+    // Fee
+    fee: "400000", // 0.004 BNB
   }),
   created() {
     this.selectToken = this.tokens[0];
+  },
+  watch: {
+    selectToken(newSelectToken) {
+      // Reset Data
+      this.amount = "";
+      this.recipient = "";
+      this.bnbBalance = "0";
+      this.tokenBalance = "0";
+
+      // Get Data
+      if (this.address) {
+        this.getBalance();
+      }
+    },
   },
   mounted() {
     this.mathExtensionHandler = setInterval(() => {
@@ -118,6 +154,13 @@ export default {
     }, 5000);
   },
   methods: {
+    walletPicker() {
+      if (mathwallet.isMath()) {
+        mathwallet.walletPicker("BSC").then((account) => {
+          this.recipient = account.address;
+        });
+      }
+    },
     login() {
       window.mathExtension
         .getIdentity({
@@ -130,18 +173,25 @@ export default {
           this.getBalance();
         });
     },
+    getFeeText() {
+      return formatAmount(this.fee, this.tokens[0].decimals);
+    },
     getBalance() {
       this.httpProvider
         .get(`/api/v1/account/${this.address}`)
         .then((response) => {
           const balances = response.result.balances;
           if (balances && balances.length > 0) {
-            const b = balances.find(
-              (balance) => balance.symbol === this.selectToken.symbol
-            );
-            this.balance = b ? b.free : "0";
+            balances.forEach((b) => {
+              if (b.symbol === this.selectToken.symbol) {
+                this.tokenBalance = b.free;
+              } else if (b.symbol === this.tokens[0].symbol) {
+                this.bnbBalance = b.free;
+              }
+            });
           } else {
-            this.balance = "0";
+            this.tokenBalance = "0";
+            this.bnbBalance = "0";
           }
         });
     },
@@ -152,17 +202,40 @@ export default {
           this.selectToken.decimals
         )
       );
-      const balanceBN = new BN(
+      const feeBN = new BN(this.fee);
+      const bnbBalanceBN = new BN(
         parseAmount(
-          this.balance.length ? this.balance : "0",
+          this.bnbBalance.length ? this.bnbBalance : "0",
+          this.tokens[0].decimals
+        )
+      );
+      const tokenBalanceBN = new BN(
+        parseAmount(
+          this.tokenBalance.length ? this.tokenBalance : "0",
           this.selectToken.decimals
         )
       );
-      if (balanceBN.cmp(amountBN) == -1) {
-        this.showSnackbar = true;
-        this.snackbarColor = "error";
-        this.snackbarText = this.selectToken.symbol + " balance insufficient";
-        return;
+      // BNB
+      if (this.selectToken.symbol == this.tokens[0].symbol) {
+        if (tokenBalanceBN.cmp(amountBN.add(feeBN)) == -1) {
+          this.showSnackbar = true;
+          this.snackbarColor = "error";
+          this.snackbarText = this.selectToken.symbol + " balance insufficient";
+          return;
+        }
+      } else {
+        if (bnbBalanceBN.cmp(feeBN) == -1) {
+          this.showSnackbar = true;
+          this.snackbarColor = "error";
+          this.snackbarText = this.tokens[0].symbol + " balance insufficient";
+          return;
+        }
+        if (tokenBalanceBN.cmp(amountBN) == -1) {
+          this.showSnackbar = true;
+          this.snackbarColor = "error";
+          this.snackbarText = this.selectToken.symbol + " balance insufficient";
+          return;
+        }
       }
       var to;
       try {

@@ -55,7 +55,9 @@
                     label="Recipient"
                     :hint="recipientHint"
                     persistent-hint
-                    placeholder="bnb163tgq6gv49km8mlc96az8xagha5q48e325c5ur"
+                    placeholder="bnbxxxxxxxxxxxxx..."
+                    append-icon="mdi-chevron-down"
+                    @click:append="walletPicker"
                     filled
                   ></v-text-field>
                   <v-input
@@ -133,6 +135,7 @@ import BN from "bn.js";
 import * as Bech32 from "bech32";
 import CryptoUtils from "./utils/CryptoUtils";
 import { parseAmount, formatAmount } from "./utils/Format";
+import mathwallet from "math-js-sdk";
 
 export default {
   name: "App",
@@ -161,23 +164,13 @@ export default {
         decimals: 18,
       },
       {
-        symbol: "BTC",
-        contract: "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8",
-        decimals: 18,
-      },
-      {
-        symbol: "ETH",
-        contract: "0xd66c6B4F0be8CE5b39D52E0Fd1344c389929B378",
-        decimals: 18,
-      },
-      {
-        symbol: "XRP",
-        contract: "0xa83575490D7df4E2F47b7D38ef351a2722cA45b9",
+        symbol: "BTCB",
+        contract: "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
         decimals: 18,
       },
       {
         symbol: "BUSD",
-        contract: "0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee",
+        contract: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
         decimals: 18,
       },
     ],
@@ -194,7 +187,7 @@ export default {
     // Transfer Amount
     amount: "", // unit(BNB，18)
     // Relay fee
-    relayFee: "10000000000000000", /// unit(BNB，18)
+    relayFee: "2000000000000000", /// unit(BNB，18)
     // Gas fee
     gasLimit: "200000",
     gasPrice: "20000000000",
@@ -251,6 +244,13 @@ export default {
     }, 5000);
   },
   methods: {
+    walletPicker() {
+      if (mathwallet.isMath()) {
+        mathwallet.walletPicker("BINANCE").then((account) => {
+          this.recipient = account.address;
+        });
+      }
+    },
     isBNBToken() {
       return this.selectToken.symbol == this.tokens[0].symbol;
     },
