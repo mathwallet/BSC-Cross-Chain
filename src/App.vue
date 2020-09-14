@@ -174,6 +174,21 @@ export default {
         contract: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
         decimals: 18,
       },
+      {
+        symbol: "CAN",
+        contract: "0x007ea5c0ea75a8df45d288a4debdd5bb633f9e56",
+        decimals: 18,
+      },
+      {
+        symbol: "RAVEN",
+        contract: "0xcd7c5025753a49f1881b31c48caa7c517bb46308",
+        decimals: 18,
+      },
+      {
+        symbol: "CBIX",
+        contract: "0x34681c1035f97e1edcccec5f142e02ff81a3a230",
+        decimals: 18,
+      },
     ],
     selectToken: null,
     // Balance

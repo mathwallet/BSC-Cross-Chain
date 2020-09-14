@@ -107,6 +107,18 @@ export default {
         symbol: "BUSD-BD1",
         decimals: 8,
       },
+      {
+        symbol: "CAN-677",
+        decimals: 8,
+      },
+      {
+        symbol: "RAVEN-F66",
+        decimals: 8,
+      },
+      {
+        symbol: "CBIX-3C9",
+        decimals: 8,
+      },
     ],
     selectToken: null,
     // Balance
