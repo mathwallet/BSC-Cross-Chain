@@ -17,10 +17,11 @@
       </v-btn>
     </v-app-bar>
 
-    <v-content class="px-3 my-3">
+    <v-main class="px-3 my-3">
       <v-card class="mx-auto">
-        <v-card-text class="mx-auto">
+        <v-card-text class="mx-auto" v-if="selectToken">
           <v-select
+            v-if="tokens"
             v-model="selectToken"
             label="Select a Token"
             :items="tokens"
@@ -117,7 +118,7 @@
           </v-tabs-items>
         </v-card-text>
       </v-card>
-    </v-content>
+    </v-main>
     <v-snackbar
       :color="snackbarColor"
       v-model="showSnackbar"
@@ -228,7 +229,7 @@ export default {
     },
   },
   created() {
-    this.selectToken = this.tokens[0];
+    this.getTokenList();
     this.selectTab = this.tabs[0];
   },
   mounted() {
@@ -244,6 +245,30 @@ export default {
     }, 5000);
   },
   methods: {
+    getTokenList(){
+      let firstToken = [
+        {
+          symbol: "BNB",
+          contract: "0x0000000000000000000000000000000000000000",
+          decimals: 18,
+        }
+      ];
+      this.axios.get('https://market.maiziqianbao.net/api/getCrossChainTokens?type=1005').then(res=>{
+        let tokens = res.data.data;
+
+        if(tokens&&tokens.length>0){
+          tokens.filter(v=>{
+            return v.symbol!='BNB'
+          });
+        }
+
+        this.tokens = [...firstToken,...tokens];
+        this.selectToken = this.tokens[0];
+      }).catch(()=>{
+        this.tokens = firstToken;
+        this.selectToken = this.tokens[0];
+      })
+    },
     walletPicker() {
       if (mathwallet.isMath()) {
         mathwallet.walletPicker("BINANCE").then((account) => {
@@ -252,7 +277,10 @@ export default {
       }
     },
     isBNBToken() {
-      return this.selectToken.symbol == this.tokens[0].symbol;
+      if(this.tokens&&this.tokens.length>0&&this.selectToken){
+        return this.selectToken.symbol == this.tokens[0].symbol;
+      }
+      return false;
     },
     getTokenBalanceMessage(approve = false) {
       if (this.isBNBToken()) {
