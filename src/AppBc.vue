@@ -17,9 +17,9 @@
       </v-btn>
     </v-app-bar>
 
-    <v-content class="px-3 my-3">
+    <v-main class="px-3 my-3">
       <v-card class="mx-auto">
-        <v-card-text class="mx-auto">
+        <v-card-text class="mx-auto" v-if="selectToken">
           <v-select
             v-model="selectToken"
             label="Select a Token"
@@ -68,7 +68,7 @@
           >Transfer</v-btn>
         </v-card-actions>
       </v-card>
-    </v-content>
+    </v-main>
     <v-snackbar
       :color="snackbarColor"
       v-model="showSnackbar"
@@ -123,7 +123,8 @@ export default {
     fee: "400000", // 0.004 BNB
   }),
   created() {
-    this.selectToken = this.tokens[0];
+    this.getTokenList();
+
   },
   watch: {
     selectToken(newSelectToken) {
@@ -154,6 +155,29 @@ export default {
     }, 5000);
   },
   methods: {
+    getTokenList(){
+      let firstToken = [
+            {
+              symbol: "BNB",
+              decimals: 8,
+            },
+          ]
+      this.axios.get('https://market.maiziqianbao.net/api/getCrossChainTokens?type=14').then(res=>{
+        let tokens = res.data.data;
+
+        if(tokens&&tokens.length>0){
+          tokens.filter(v=>{
+            return v.symbol!='BNB'
+          });
+        }
+
+        this.tokens = [...firstToken,...tokens];
+        this.selectToken = this.tokens[0];
+      }).catch(()=>{
+        this.tokens = firstToken;
+        this.selectToken = this.tokens[0];
+      })
+    },
     walletPicker() {
       if (mathwallet.isMath()) {
         mathwallet.walletPicker("BSC").then((account) => {
@@ -171,7 +195,7 @@ export default {
           this.address = identity.account;
           this.httpProvider = window.mathExtension.httpProvider(this.rpcUrl);
           this.getBalance();
-        });
+        },err=>{console.log(err)});
     },
     getFeeText() {
       return formatAmount(this.fee, this.tokens[0].decimals);
