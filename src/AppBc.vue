@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-app-bar app light>
-      <p class="primary--text title pt-4">Binance Chain</p>
+      <h3 class="primary--text">Binance Chain</h3>
 
       <v-spacer></v-spacer>
 
@@ -17,7 +17,7 @@
       </v-btn>
     </v-app-bar>
 
-    <v-main class="px-3 my-3">
+    <v-content class="px-3 my-3">
       <v-card class="mx-auto">
         <v-card-text class="mx-auto" v-if="selectToken">
           <v-select
@@ -68,7 +68,7 @@
           >Transfer</v-btn>
         </v-card-actions>
       </v-card>
-    </v-main>
+    </v-content>
     <v-snackbar
       :color="snackbarColor"
       v-model="showSnackbar"
@@ -99,26 +99,6 @@ export default {
         symbol: "BNB",
         decimals: 8,
       },
-      {
-        symbol: "BTCB-1DE",
-        decimals: 8,
-      },
-      {
-        symbol: "BUSD-BD1",
-        decimals: 8,
-      },
-      {
-        symbol: "CAN-677",
-        decimals: 8,
-      },
-      {
-        symbol: "RAVEN-F66",
-        decimals: 8,
-      },
-      {
-        symbol: "CBIX-3C9",
-        decimals: 8,
-      },
     ],
     selectToken: null,
     // Balance
@@ -135,8 +115,8 @@ export default {
     fee: "400000", // 0.004 BNB
   }),
   created() {
+    this.selectToken = this.tokens[0];
     this.getTokenList();
-
   },
   watch: {
     selectToken(newSelectToken) {
@@ -167,28 +147,22 @@ export default {
     }, 5000);
   },
   methods: {
-    getTokenList(){
-      let firstToken = [
-            {
-              symbol: "BNB",
-              decimals: 8,
-            },
-          ]
-      this.axios.get('https://market.maiziqianbao.net/api/getCrossChainTokens?type=14').then(res=>{
-        let tokens = res.data.data;
+    getTokenList() {
+      this.axios
+        .get("https://market.maiziqianbao.net/api/getCrossChainTokens?type=14")
+        .then((res) => {
+          let tokens = res.data.data;
+          if (!tokens || tokens.length == 0) {
+            return;
+          }
 
-        if(tokens&&tokens.length>0){
-          tokens.filter(v=>{
-            return v.symbol!='BNB'
-          });
-        }
-
-        this.tokens = [...firstToken,...tokens];
-        this.selectToken = this.tokens[0];
-      }).catch(()=>{
-        this.tokens = firstToken;
-        this.selectToken = this.tokens[0];
-      })
+          this.tokens.push(
+            ...tokens.filter((v) => {
+              return v.symbol != this.tokens[0].symbol;
+            })
+          );
+        })
+        .catch(() => {});
     },
     walletPicker() {
       if (mathwallet.isMath()) {
@@ -203,11 +177,16 @@ export default {
           blockchain: "binance",
           chainId: "Binance-Chain-Tigris",
         })
-        .then((identity) => {
-          this.address = identity.account;
-          this.httpProvider = window.mathExtension.httpProvider(this.rpcUrl);
-          this.getBalance();
-        },err=>{console.log(err)});
+        .then(
+          (identity) => {
+            this.address = identity.account;
+            this.httpProvider = window.mathExtension.httpProvider(this.rpcUrl);
+            this.getBalance();
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
     },
     getFeeText() {
       return formatAmount(this.fee, this.tokens[0].decimals);

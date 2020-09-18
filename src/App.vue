@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-app-bar app light>
-      <p class="primary--text title pt-4">Binance Smart Chain</p>
+      <h3 class="primary--text">Binance Smart Chain</h3>
 
       <v-spacer></v-spacer>
 
@@ -16,8 +16,7 @@
         <v-icon>mdi-account</v-icon>
       </v-btn>
     </v-app-bar>
-
-    <v-main class="px-3 my-3">
+    <v-content class="px-3 my-3">
       <v-card class="mx-auto">
         <v-card-text class="mx-auto" v-if="selectToken">
           <v-select
@@ -118,7 +117,7 @@
           </v-tabs-items>
         </v-card-text>
       </v-card>
-    </v-main>
+    </v-content>
     <v-snackbar
       :color="snackbarColor"
       v-model="showSnackbar"
@@ -162,31 +161,6 @@ export default {
       {
         symbol: "BNB",
         contract: "0x0000000000000000000000000000000000000000",
-        decimals: 18,
-      },
-      {
-        symbol: "BTCB",
-        contract: "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
-        decimals: 18,
-      },
-      {
-        symbol: "BUSD",
-        contract: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
-        decimals: 18,
-      },
-      {
-        symbol: "CAN",
-        contract: "0x007ea5c0ea75a8df45d288a4debdd5bb633f9e56",
-        decimals: 18,
-      },
-      {
-        symbol: "RAVEN",
-        contract: "0xcd7c5025753a49f1881b31c48caa7c517bb46308",
-        decimals: 18,
-      },
-      {
-        symbol: "CBIX",
-        contract: "0x34681c1035f97e1edcccec5f142e02ff81a3a230",
         decimals: 18,
       },
     ],
@@ -244,8 +218,8 @@ export default {
     },
   },
   created() {
+    this.selectToken = this.tokens[0];
     this.getTokenList();
-    this.selectTab = this.tabs[0];
   },
   mounted() {
     this.web3Handler = setInterval(() => {
@@ -260,29 +234,25 @@ export default {
     }, 5000);
   },
   methods: {
-    getTokenList(){
-      let firstToken = [
-        {
-          symbol: "BNB",
-          contract: "0x0000000000000000000000000000000000000000",
-          decimals: 18,
-        }
-      ];
-      this.axios.get('https://market.maiziqianbao.net/api/getCrossChainTokens?type=1005').then(res=>{
-        let tokens = res.data.data;
+    getTokenList() {
+      this.axios
+        .get(
+          "https://market.maiziqianbao.net/api/getCrossChainTokens?type=1005"
+        )
+        .then((res) => {
+          let tokens = res.data.data;
 
-        if(tokens&&tokens.length>0){
-          tokens.filter(v=>{
-            return v.symbol!='BNB'
-          });
-        }
+          if (!tokens || tokens.length == 0) {
+            return;
+          }
 
-        this.tokens = [...firstToken,...tokens];
-        this.selectToken = this.tokens[0];
-      }).catch(()=>{
-        this.tokens = firstToken;
-        this.selectToken = this.tokens[0];
-      })
+          this.tokens.push(
+            ...tokens.filter((v) => {
+              return v.symbol != this.tokens[0].symbol;
+            })
+          );
+        })
+        .catch(() => {});
     },
     walletPicker() {
       if (mathwallet.isMath()) {
@@ -292,7 +262,7 @@ export default {
       }
     },
     isBNBToken() {
-      if(this.tokens&&this.tokens.length>0&&this.selectToken){
+      if (this.tokens && this.tokens.length > 0 && this.selectToken) {
         return this.selectToken.symbol == this.tokens[0].symbol;
       }
       return false;
