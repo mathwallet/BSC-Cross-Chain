@@ -180,7 +180,7 @@ export default {
     relayFee: "2000000000000000", /// unit(BNB，18)
     // Gas fee
     gasLimit: "200000",
-    gasPrice: "20000000000",
+    gasPrice: "5000000000",
   }),
   watch: {
     recipient(newRecipient, oldRecipient) {
